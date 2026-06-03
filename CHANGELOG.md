@@ -1,4 +1,4 @@
-## [v1.6.0-beta.1] - 2026-06-03
+## [v1.5.5] - 2026-06-03
 
 ### Added
 - **Message Editing**: Introduced a new endpoint `PATCH /api/messages/[sessionId]/[jid]/[messageId]` to edit sent text messages.
