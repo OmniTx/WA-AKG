@@ -372,7 +372,7 @@ export default function SchedulerPage() {
                                         </div>
                                         <div className="text-sm font-medium mt-1">{msg.content}</div>
                                         <div className="text-xs text-muted-foreground mt-1">
-                                            Scheduled for: {new Date(msg.sendAt).toLocaleString()}
+                                            Scheduled for: {moment(msg.sendAt).tz(systemTimezone).format('YYYY-MM-DD HH:mm:ss')}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
