@@ -854,133 +854,6 @@ All endpoints require authentication via:
                 },
 
                 // ==================== MESSAGING ====================
-                "/chat/send": {
-                    post: {
-                        tags: ["Messaging (Deprecated)"],
-                        summary: "[DEPRECATED] Send message (text/media/sticker)",
-                        description: "⚠️ **DEPRECATED**: Use POST /messages/{sessionId}/{jid}/send instead. This endpoint will be removed in a future version.\\n\\nUniversal endpoint for sending text, images, videos, documents, and stickers",
-                        deprecated: true,
-                        requestBody: {
-                            required: true,
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "message"],
-                                        properties: {
-                                            sessionId: { type: "string", example: "sales-01" },
-                                            jid: { type: "string", example: "628123456789@s.whatsapp.net" },
-                                            message: {
-                                                type: "object",
-                                                description: "Message content (text, image, sticker, etc.)",
-                                                oneOf: [
-                                                    {
-                                                        properties: {
-                                                            text: { type: "string", example: "Hello!" }
-                                                        }
-                                                    },
-                                                    {
-                                                        properties: {
-                                                            image: {
-                                                                type: "object",
-                                                                properties: {
-                                                                    url: { type: "string", example: "https://example.com/image.jpg" }
-                                                                }
-                                                            },
-                                                            caption: { type: "string", example: "Check this out" }
-                                                        }
-                                                    }
-                                                ]
-                                            },
-                                            mentions: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                example: ["628123456789@s.whatsapp.net"],
-                                                description: "List of JIDs to mention"
-                                            }
-                                        }
-                                    },
-                                    examples: {
-                                        text: {
-                                            summary: "Text message",
-                                            value: {
-                                                sessionId: "sales-01",
-                                                jid: "628123456789@s.whatsapp.net",
-                                                message: { text: "Hello, how can I help you?" }
-                                            }
-                                        },
-                                        image: {
-                                            summary: "Image with caption",
-                                            value: {
-                                                sessionId: "sales-01",
-                                                jid: "628123456789@s.whatsapp.net",
-                                                message: {
-                                                    image: { url: "https://example.com/product.jpg" },
-                                                    caption: "New product available!"
-                                                }
-                                            }
-                                        },
-                                        withMention: {
-                                            summary: "Message with Mention",
-                                            value: {
-                                                sessionId: "sales-01",
-                                                jid: "120363123456789@g.us",
-                                                message: { text: "Hello @628123456789, welcome!" },
-                                                mentions: ["628123456789@s.whatsapp.net"]
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Message sent",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            503: { $ref: "#/components/responses/SessionNotReady" }
-                        }
-                    }
-                },
-
-                "/chat/{sessionId}/send": {
-                    post: {
-                        tags: ["Messaging (Deprecated)"],
-                        summary: "[DEPRECATED] Send message",
-                        description: "⚠️ **DEPRECATED**: Use POST /messages/{sessionId}/{jid}/send instead.",
-                        deprecated: true,
-                        parameters: [
-                            {
-                                name: "sessionId",
-                                in: "path",
-                                required: true,
-                                schema: { type: "string" }
-                            }
-                        ],
-                        requestBody: {
-                            required: true,
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["jid", "message"],
-                                        properties: {
-                                            jid: { type: "string" },
-                                            message: { type: "object" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: { description: "Message sent" }
-                        }
-                    }
-                },
 
                 "/messages/{sessionId}/{jid}/send": {
                     post: {
@@ -1230,56 +1103,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/messages/broadcast": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Broadcast message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/broadcast instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "recipients", "message"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            recipients: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                example: ["628123456789@s.whatsapp.net", "628987654321@s.whatsapp.net"]
-                                            },
-                                            message: { type: "string", example: "Flash Sale! 50% off" },
-                                            delay: { type: "number", minimum: 500, maximum: 60000, default: 2000, description: "Intended delay between messages (ms). Note: implementation uses additional random 10-20s delay." }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Broadcast started (background processing)",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean", example: true },
-                                                message: { type: "string", example: "Broadcast started in background" }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            400: { description: "Invalid request (validation error)" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to start broadcast" }
-                        }
-                    }
-                },
 
                 "/messages/{sessionId}/{jid}/poll": {
                     post: {
@@ -1320,52 +1143,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/messages/poll": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Send poll message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/poll instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "question", "options"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            question: { type: "string", example: "What's your favorite product?" },
-                                            options: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                minItems: 2,
-                                                maxItems: 12,
-                                                example: ["Product A", "Product B", "Product C"]
-                                            },
-                                            selectableCount: { type: "integer", minimum: 1, example: 1 }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Poll sent",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            400: { description: "Invalid request (missing fields or options out of range)" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to send poll" }
-                        }
-                    }
-                },
 
                 "/messages/{sessionId}/{jid}/location": {
                     post: {
@@ -1394,47 +1171,6 @@ All endpoints require authentication via:
                         },
                         responses: {
                             200: { description: "Location sent", content: { "application/json": { schema: { type: "object", properties: { success: { type: "boolean", example: true } } } } } },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to send location" }
-                        }
-                    }
-                },
-                "/messages/location": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Send location (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/location instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "latitude", "longitude"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            latitude: { type: "number", minimum: -90, maximum: 90, example: -6.2088 },
-                                            longitude: { type: "number", minimum: -180, maximum: 180, example: 106.8456 },
-                                            name: { type: "string", example: "Office" },
-                                            address: { type: "string", example: "Jakarta, Indonesia" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Location sent",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            400: { description: "Invalid request (missing fields or coordinates out of range)" },
                             401: { $ref: "#/components/responses/Unauthorized" },
                             403: { $ref: "#/components/responses/Forbidden" },
                             503: { $ref: "#/components/responses/SessionNotReady" },
@@ -1484,54 +1220,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/messages/contact": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Send contact card (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/contact instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "contacts"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            contacts: {
-                                                type: "array",
-                                                items: {
-                                                    type: "object",
-                                                    required: ["displayName", "vcard"],
-                                                    properties: {
-                                                        displayName: { type: "string" },
-                                                        vcard: { type: "string" }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Contact sent",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            400: { description: "Invalid request (missing fields or empty contacts)" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to send contact" }
-                        }
-                    }
-                },
 
                 "/messages/{sessionId}/download/{messageId}/media": {
                     get: {
@@ -1549,30 +1237,6 @@ All endpoints require authentication via:
                                     "*/*": { schema: { type: "string", format: "binary" } }
                                 }
                             },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { description: "Forbidden - Cannot access session or message" },
-                            404: { description: "Message not found or has no media" }
-                        }
-                    }
-                },
-                "/messages/{id}/media": {
-                    get: {
-                        tags: ["Messaging"],
-                        summary: "Download message media (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /messages/{sessionId}/{messageId}/media instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "id", in: "path", required: true, schema: { type: "string" } },
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: {
-                            200: {
-                                description: "Binary media file",
-                                content: {
-                                    "*/*": { schema: { type: "string", format: "binary" } }
-                                }
-                            },
-                            400: { description: "sessionId is required" },
                             401: { $ref: "#/components/responses/Unauthorized" },
                             403: { description: "Forbidden - Cannot access session or message" },
                             404: { description: "Message not found or has no media" }
@@ -1839,52 +1503,6 @@ All endpoints require authentication via:
                     }
                 },
 
-                "/messages/react": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "React to message with emoji (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/{messageId}/react instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "messageId", "emoji"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            messageId: { type: "string", example: "3EB0ABCD1234567890" },
-                                            emoji: { type: "string", example: "👍", description: "Emoji or empty string to remove" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Reaction sent",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean", example: true },
-                                                message: { type: "string", example: "Reaction sent" }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            400: { description: "Invalid request (missing fields)" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to send reaction" }
-                        }
-                    }
-                },
-
                 "/messages/{sessionId}/{jid}/list": {
                     post: {
                         tags: ["Messaging"],
@@ -1915,46 +1533,6 @@ All endpoints require authentication via:
                             403: { $ref: "#/components/responses/Forbidden" },
                             503: { $ref: "#/components/responses/SessionNotReady" },
                             500: { description: "Failed to send message" }
-                        }
-                    }
-                },
-                "/messages/list": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Send list message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/list instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "title", "options"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            title: { type: "string", example: "Our Services" },
-                                            options: { type: "array", items: { type: "string" }, example: ["Web Dev", "App Dev", "UI/UX"] },
-                                            footer: { type: "string", example: "Choose one" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "List message sent",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            400: { description: "Missing fields or empty options" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to send list message" }
                         }
                     }
                 },
@@ -1992,52 +1570,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/messages/spam": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Message bombing (Spam) (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/spam instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "message"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            message: { type: "string", example: "Check our new catalog!" },
-                                            count: { type: "integer", default: 10, example: 5 },
-                                            delay: { type: "integer", default: 500, example: 1000, description: "Delay in ms" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Spam started",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean", example: true },
-                                                message: { type: "string", example: "Bombing 5 messages started" }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            400: { description: "Missing required fields" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to start spam" }
-                        }
-                    }
-                },
 
                 "/messages/{sessionId}/{jid}/sticker": {
                     post: {
@@ -2067,44 +1599,6 @@ All endpoints require authentication via:
                         },
                         responses: {
                             200: { description: "Sticker sent", content: { "application/json": { schema: { type: "object", properties: { success: { type: "boolean", example: true } } } } } },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to create sticker" }
-                        }
-                    }
-                },
-                "/messages/sticker": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Send sticker (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/{jid}/sticker instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "multipart/form-data": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "file"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            file: { type: "string", format: "binary" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Sticker sent",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            400: { description: "Missing required fields" },
                             401: { $ref: "#/components/responses/Unauthorized" },
                             403: { $ref: "#/components/responses/Forbidden" },
                             503: { $ref: "#/components/responses/SessionNotReady" },
@@ -2150,56 +1644,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/messages/forward": {
-                    post: {
-                        tags: ["Messaging"],
-                        summary: "Forward message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /messages/{sessionId}/forward instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "fromJid", "messageId", "toJids"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            fromJid: { type: "string", description: "Source chat JID" },
-                                            messageId: { type: "string" },
-                                            toJids: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                description: "Recipient JIDs"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Message forwarded",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean", example: true },
-                                                message: { type: "string", example: "Message forwarded to 1 recipient(s)" }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            400: { description: "Invalid request (missing fields or empty recipients)" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to forward message" }
-                        }
-                    }
-                },
-
                 "/messages/{sessionId}/{jid}/{messageId}": {
                     delete: {
                         tags: ["Messaging"],
@@ -2230,24 +1674,25 @@ All endpoints require authentication via:
                             503: { $ref: "#/components/responses/SessionNotReady" },
                             500: { description: "Failed to delete message" }
                         }
-                    }
-                },
-                "/messages/delete": {
-                    delete: {
+                    },
+                    patch: {
                         tags: ["Messaging"],
-                        summary: "Delete message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use DELETE /messages/{sessionId}/{jid}/{messageId} instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
+                        summary: "Edit a sent message",
+                        description: "Edit text of a sent message",
+                        parameters: [
+                            { name: "sessionId", in: "path", required: true, schema: { type: "string" } },
+                            { name: "jid", in: "path", required: true, schema: { type: "string" } },
+                            { name: "messageId", in: "path", required: true, schema: { type: "string" } }
+                        ],
                         requestBody: {
+                            required: true,
                             content: {
                                 "application/json": {
                                     schema: {
                                         type: "object",
-                                        required: ["sessionId", "jid", "messageId"],
+                                        required: ["text"],
                                         properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            messageId: { type: "string" }
+                                            text: { type: "string", example: "Updated text message" }
                                         }
                                     }
                                 }
@@ -2255,24 +1700,24 @@ All endpoints require authentication via:
                         },
                         responses: {
                             200: {
-                                description: "Message deleted",
+                                description: "Message edited",
                                 content: {
                                     "application/json": {
                                         schema: {
                                             type: "object",
                                             properties: {
-                                                success: { type: "boolean", example: true },
-                                                message: { type: "string", example: "Message deleted for everyone" }
+                                                status: { type: "boolean", example: true },
+                                                message: { type: "string", example: "Message edited successfully" }
                                             }
                                         }
                                     }
                                 }
                             },
-                            400: { description: "Message too old (> 7 minutes) or missing fields" },
+                            400: { description: "Bad Request" },
                             401: { $ref: "#/components/responses/Unauthorized" },
                             403: { $ref: "#/components/responses/Forbidden" },
                             503: { $ref: "#/components/responses/SessionNotReady" },
-                            500: { description: "Failed to delete message" }
+                            500: { description: "Failed to edit message" }
                         }
                     }
                 },
@@ -2647,235 +2092,6 @@ All endpoints require authentication via:
                     }
                 },
 
-                "/chat/check": {
-                    post: {
-                        tags: ["Chat"],
-                        summary: "Check numbers (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /chat/{sessionId}/check instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "numbers"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            numbers: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                maxItems: 50,
-                                                example: ["628123456789", "628987654321"]
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Validation results",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean" },
-                                                results: {
-                                                    type: "array",
-                                                    items: {
-                                                        type: "object",
-                                                        properties: {
-                                                            number: { type: "string" },
-                                                            exists: { type: "boolean" },
-                                                            jid: { type: "string", nullable: true },
-                                                            error: { type: "string", nullable: true }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-
-                "/chat/read": {
-                    put: {
-                        tags: ["Chat"],
-                        summary: "Mark messages as read (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /chat/{sessionId}/{jid}/read instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            messageIds: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                description: "Optional: specific message IDs to mark"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Marked as read" } }
-                    }
-                },
-
-                "/chat/archive": {
-                    put: {
-                        tags: ["Chat"],
-                        summary: "Archive/unarchive chat (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /chat/{sessionId}/{jid}/archive instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "archive"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            archive: { type: "boolean", description: "true to archive, false to unarchive" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Chat archived/unarchived" } }
-                    }
-                },
-
-                "/chat/mute": {
-                    put: {
-                        tags: ["Chat"],
-                        summary: "Mute/unmute chat (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /chat/{sessionId}/{jid}/mute instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "mute"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            mute: { type: "boolean" },
-                                            duration: { type: "integer", description: "Duration in seconds (default: 8 hours)", example: 3600 }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Chat muted/unmuted" } }
-                    }
-                },
-
-                "/chat/pin": {
-                    put: {
-                        tags: ["Chat"],
-                        summary: "Pin/unpin chat (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /chat/{sessionId}/{jid}/pin instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "pin"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            pin: { type: "boolean" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Chat pinned/unpinned" } }
-                    }
-                },
-
-                "/chat/presence": {
-                    post: {
-                        tags: ["Chat"],
-                        summary: "Send presence (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /chat/{sessionId}/{jid}/presence instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "presence"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            presence: {
-                                                type: "string",
-                                                enum: ["composing", "recording", "paused", "available", "unavailable"],
-                                                example: "composing"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Presence sent" } }
-                    }
-                },
-
-                "/chat/profile-picture": {
-                    post: {
-                        tags: ["Chat"],
-                        summary: "Get profile picture URL (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /chat/{sessionId}/{jid}/profile-picture instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Profile picture URL",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean" },
-                                                jid: { type: "string" },
-                                                profilePicUrl: { type: "string", nullable: true }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-
                 // ==================== GROUPS ====================
                 "/groups/{sessionId}": {
                     get: {
@@ -2892,18 +2108,6 @@ All endpoints require authentication via:
                             404: { $ref: "#/components/responses/NotFound" },
                             500: { description: "Failed to fetch groups" }
                         }
-                    }
-                },
-                "/groups": {
-                    get: {
-                        tags: ["Groups"],
-                        summary: "List all groups (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /groups/{sessionId} instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: { 200: { description: "List of groups" } }
                     }
                 },
 
@@ -2940,34 +2144,6 @@ All endpoints require authentication via:
                             503: { $ref: "#/components/responses/SessionNotReady" },
                             500: { description: "Failed to create group" }
                         }
-                    }
-                },
-                "/groups/create": {
-                    post: {
-                        tags: ["Groups"],
-                        summary: "Create new group (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /groups/{sessionId}/create instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "subject", "participants"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            subject: { type: "string", maxLength: 100, example: "VIP Customers" },
-                                            participants: {
-                                                type: "array",
-                                                items: { type: "string" },
-                                                example: ["628123456789@s.whatsapp.net"]
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Group created" } }
                     }
                 },
 
@@ -3079,40 +2255,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/groups/{jid}/members": {
-                    put: {
-                        tags: ["Groups"],
-                        summary: "Manage group members (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /groups/{sessionId}/{jid}/members instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "action", "participants"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            action: {
-                                                type: "string",
-                                                enum: ["add", "remove", "promote", "demote"],
-                                                example: "add"
-                                            },
-                                            participants: {
-                                                type: "array",
-                                                items: { type: "string" }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Members updated" } }
-                    }
-                },
 
                 "/groups/{sessionId}/{jid}/invite": {
                     "put": {
@@ -3174,145 +2316,10 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/groups/{jid}/invite": {
-                    get: {
-                        tags: ["Groups"],
-                        summary: "Get invite code (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /groups/{sessionId}/{jid}/invite instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } },
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: {
-                            200: {
-                                description: "Invite code",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                success: { type: "boolean" },
-                                                inviteCode: { type: "string" },
-                                                inviteUrl: { type: "string", example: "https://chat.whatsapp.com/AbCdEfGh" }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    put: {
-                        tags: ["Groups"],
-                        summary: "Revoke invite code (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /groups/{sessionId}/{jid}/invite instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId"],
-                                        properties: {
-                                            sessionId: { type: "string" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Invite code revoked, new code generated" } }
-                    }
-                },
 
 
 
                 // ==================== CONTACTS ====================
-                "/contacts/{sessionId}": {
-                    get: {
-                        tags: ["Contacts"],
-                        summary: "List contacts",
-                        description: "Get all contacts with search and pagination",
-                        deprecated: false,
-                        parameters: [
-                            { name: "sessionId", in: "path", required: true, schema: { type: "string" } },
-                            { name: "page", in: "query", schema: { type: "integer", default: 1 } },
-                            { name: "limit", in: "query", schema: { type: "integer", default: 10 } },
-                            { name: "search", in: "query", schema: { type: "string" }, description: "Search by name, notify, jid" }
-                        ],
-                        responses: {
-                            200: {
-                                description: "Paginated contacts",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                data: {
-                                                    type: "array",
-                                                    items: { $ref: "#/components/schemas/Contact" }
-                                                },
-                                                meta: {
-                                                    type: "object",
-                                                    properties: {
-                                                        total: { type: "integer" },
-                                                        page: { type: "integer" },
-                                                        limit: { type: "integer" },
-                                                        totalPages: { type: "integer" }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-
-                "/contacts": {
-                    get: {
-                        tags: ["Contacts"],
-                        summary: "List contacts (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /contacts/{sessionId} instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } },
-                            { name: "page", in: "query", schema: { type: "integer", default: 1 } },
-                            { name: "limit", in: "query", schema: { type: "integer", default: 10 } },
-                            { name: "search", in: "query", schema: { type: "string" }, description: "Search by name, notify, jid" }
-                        ],
-                        responses: {
-                            200: {
-                                description: "Paginated contacts",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                data: {
-                                                    type: "array",
-                                                    items: { $ref: "#/components/schemas/Contact" }
-                                                },
-                                                meta: {
-                                                    type: "object",
-                                                    properties: {
-                                                        total: { type: "integer" },
-                                                        page: { type: "integer" },
-                                                        limit: { type: "integer" },
-                                                        totalPages: { type: "integer" }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
 
                 // ==================== PROFILE ====================
                 "/profile/{sessionId}": {
@@ -3465,55 +2472,6 @@ All endpoints require authentication via:
                             403: { $ref: "#/components/responses/Forbidden" },
                             503: { $ref: "#/components/responses/SessionNotReady" }
                         }
-                    }
-                },
-
-                "/profile/name": {
-                    put: {
-                        tags: ["Profile"],
-                        summary: "Update profile name (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /profile/{sessionId}/name instead.",
-                        deprecated: true,
-                        requestBody: { content: { "application/json": { schema: { type: "object", required: ["sessionId", "name"], properties: { sessionId: { type: "string" }, name: { type: "string", maxLength: 25 } } } } } },
-                        responses: { 200: { description: "Profile name updated" } }
-                    }
-                },
-                "/profile/status": {
-                    put: {
-                        tags: ["Profile"],
-                        summary: "Update profile status (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /profile/{sessionId}/status instead.",
-                        deprecated: true,
-                        requestBody: { content: { "application/json": { schema: { type: "object", required: ["sessionId", "status"], properties: { sessionId: { type: "string" }, status: { type: "string", maxLength: 139 } } } } } },
-                        responses: { 200: { description: "Profile status updated" } }
-                    }
-                },
-                "/profile/picture": {
-                    put: {
-                        tags: ["Profile"],
-                        summary: "Update profile picture (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /profile/{sessionId}/picture instead.",
-                        deprecated: true,
-                        requestBody: { content: { "multipart/form-data": { schema: { type: "object", required: ["sessionId", "file"], properties: { sessionId: { type: "string" }, file: { type: "string", format: "binary" } } } } } },
-                        responses: { 200: { description: "Profile picture updated" } }
-                    },
-                    delete: {
-                        tags: ["Profile"],
-                        summary: "Remove profile picture (DEPRECATED)",
-                        description: "**DEPRECATED:** Use DELETE /profile/{sessionId}/picture instead.",
-                        deprecated: true,
-                        parameters: [{ name: "sessionId", in: "query", required: true, schema: { type: "string" } }],
-                        responses: { 200: { description: "Profile picture removed" } }
-                    }
-                },
-                "/profile": {
-                    get: {
-                        tags: ["Profile"],
-                        summary: "Get own profile (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /profile/{sessionId} instead.",
-                        deprecated: true,
-                        parameters: [{ name: "sessionId", in: "query", required: true, schema: { type: "string" } }],
-                        responses: { 200: { description: "Profile information" } }
                     }
                 },
 
@@ -3675,91 +2633,6 @@ All endpoints require authentication via:
                             403: { $ref: "#/components/responses/Forbidden" },
                             404: { description: "Rule not found" }
                         }
-                    }
-                },
-                "/autoreplies": {
-                    get: {
-                        tags: ["Auto Reply"],
-                        summary: "List auto-reply rules (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /autoreplies/{sessionId} instead.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: { 200: { description: "List of auto-reply rules" } }
-                    },
-                    post: {
-                        tags: ["Auto Reply"],
-                        summary: "Create auto-reply rule (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /autoreplies/{sessionId} instead.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "keyword", "response"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            keyword: { type: "string", example: "price" },
-                                            response: { type: "string", example: "Our prices start at $10" },
-                                            matchType: {
-                                                type: "string",
-                                                enum: ["EXACT", "CONTAINS", "STARTS_WITH"],
-                                                default: "EXACT"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Rule created" } }
-                    }
-                },
-                "/autoreplies/{id}": {
-                    get: {
-                        tags: ["Auto Reply"],
-                        summary: "Get auto-reply rule (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /autoreplies/{sessionId}/{replyId} instead.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "id", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        responses: { 200: { description: "Auto-reply rule details" } }
-                    },
-                    put: {
-                        tags: ["Auto Reply"],
-                        summary: "Update auto-reply rule (DEPRECATED)",
-                        description: "**DEPRECATED:** No direct replacement yet, delete and recreate.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "id", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        properties: {
-                                            keyword: { type: "string" },
-                                            response: { type: "string" },
-                                            matchType: { type: "string", enum: ["EXACT", "CONTAINS", "STARTS_WITH"] }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Rule updated" } }
-                    },
-                    delete: {
-                        tags: ["Auto Reply"],
-                        summary: "Delete auto-reply rule (DEPRECATED)",
-                        description: "**DEPRECATED:** Use DELETE /autoreplies/{sessionId}/{replyId} instead.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "id", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        responses: { 200: { description: "Rule deleted" } }
                     }
                 },
 
@@ -3934,96 +2807,6 @@ All endpoints require authentication via:
                             }
                         }
                     }
-                    ,
-                    get: {
-                        tags: ["Scheduler"],
-                        summary: "List scheduled messages (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /scheduler/{sessionId} instead.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: {
-                            200: {
-                                description: "List of scheduled messages",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "array",
-                                            items: { $ref: "#/components/schemas/ScheduledMessage" }
-                                        }
-                                    }
-                                }
-                            },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            404: { description: "Session not found" },
-                            500: { description: "Internal Server Error" }
-                        }
-                    },
-                    post: {
-                        tags: ["Scheduler"],
-                        summary: "Schedule message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /scheduler/{sessionId} instead.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "jid", "content", "sendAt"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            jid: { type: "string" },
-                                            content: { type: "string" },
-                                            sendAt: { type: "string", format: "date-time", example: "2024-01-18T10:00:00" },
-                                            mediaUrl: { type: "string", nullable: true }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Message scheduled",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/ScheduledMessage" }
-                                    }
-                                }
-                            },
-                            400: { description: "Missing required fields" },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            404: { description: "Session not found" },
-                            500: { description: "Internal Server Error" }
-                        }
-                    }
-                },
-                "/scheduler/{id}": {
-                    delete: {
-                        tags: ["Scheduler"],
-                        summary: "Delete scheduled message (DEPRECATED)",
-                        description: "**DEPRECATED:** Use DELETE /scheduler/{sessionId}/{scheduleId} instead.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "id", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        responses: {
-                            200: {
-                                description: "Scheduled message deleted",
-                                content: {
-                                    "application/json": {
-                                        schema: { $ref: "#/components/schemas/Success" }
-                                    }
-                                }
-                            },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            404: { description: "Message not found" },
-                            500: { description: "Internal server error" }
-                        }
-                    }
                 },
 
                 // ==================== WEBHOOKS ====================
@@ -4146,73 +2929,7 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/webhooks": {
-                    get: {
-                        tags: ["Webhooks"],
-                        summary: "List webhooks (DEPRECATED)",
-                        deprecated: true,
-                        responses: { 200: { description: "List of webhooks" } }
-                    },
-                    post: {
-                        tags: ["Webhooks"],
-                        summary: "Create webhook (DEPRECATED)",
-                        deprecated: true,
-                        responses: { 200: { description: "Webhook created" } }
-                    }
-                },
                 "/webhooks/{id}": {
-                    patch: {
-                        tags: ["Webhooks"],
-                        summary: "Update webhook (DEPRECATED)",
-                        deprecated: true,
-                        parameters: [
-                            { name: "id", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        properties: {
-                                            name: { type: "string" },
-                                            url: { type: "string", format: "uri" },
-                                            secret: { type: "string" },
-                                            sessionId: { type: "string" },
-                                            events: { type: "array", items: { type: "string" } },
-                                            isActive: { type: "boolean" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: {
-                            200: {
-                                description: "Webhook updated",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                id: { type: "string" },
-                                                name: { type: "string" },
-                                                url: { type: "string" },
-                                                secret: { type: "string" },
-                                                events: { type: "array", items: { type: "string" } },
-                                                isActive: { type: "boolean" },
-                                                sessionId: { type: "string" },
-                                                userId: { type: "string" },
-                                                createdAt: { type: "string", format: "date-time" },
-                                                updatedAt: { type: "string", format: "date-time" }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            404: { description: "Webhook not found" },
-                            500: { $ref: "#/components/responses/ServerError" }
-                        }
-                    },
                     delete: {
                         tags: ["Webhooks"],
                         summary: "Delete webhook",
@@ -4549,60 +3266,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/groups/{jid}": {
-                    get: {
-                        tags: ["Groups"],
-                        summary: "Get group details (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /groups/{sessionId}/{jid} instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } },
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: {
-                            200: {
-                                description: "Group details",
-                                content: {
-                                    "application/json": {
-                                        schema: {
-                                            type: "object",
-                                            properties: {
-                                                id: { type: "string" },
-                                                subject: { type: "string" },
-                                                subjectOwner: { type: "string" },
-                                                subjectTime: { type: "integer" },
-                                                size: { type: "integer" },
-                                                creation: { type: "integer" },
-                                                owner: { type: "string" },
-                                                desc: { type: "string" },
-                                                descId: { type: "string" },
-                                                restrict: { type: "boolean" },
-                                                announce: { type: "boolean" },
-                                                participants: {
-                                                    type: "array",
-                                                    items: {
-                                                        type: "object",
-                                                        properties: {
-                                                            id: { type: "string" },
-                                                            admin: { type: "string", nullable: true }
-                                                        }
-                                                    }
-                                                },
-                                                ephemeralDuration: { type: "integer" },
-                                                inviteCode: { type: "string" },
-                                                pictureUrl: { type: "string", nullable: true }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            401: { $ref: "#/components/responses/Unauthorized" },
-                            403: { $ref: "#/components/responses/Forbidden" },
-                            404: { description: "Group not found" },
-                            500: { $ref: "#/components/responses/ServerError" }
-                        }
-                    }
-                },
                 "/groups/{jid}/leave": {
                     post: {
                         tags: ["Groups"],
@@ -4656,29 +3319,6 @@ All endpoints require authentication via:
                             503: { $ref: "#/components/responses/SessionNotReady" },
                             500: { description: "Failed to accept invite" }
                         }
-                    }
-                },
-                "/groups/invite/accept": {
-                    post: {
-                        tags: ["Groups"],
-                        summary: "Accept group invite (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /groups/{sessionId}/invite/accept instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "inviteCode"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            inviteCode: { type: "string" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Group invite accepted" } }
                     }
                 },
                 "/groups/{sessionId}/{jid}/picture": {
@@ -4744,42 +3384,6 @@ All endpoints require authentication via:
                         responses: { 200: { description: "Picture removed" } }
                     }
                 },
-                "/groups/{jid}/picture": {
-                    put: {
-                        tags: ["Groups"],
-                        summary: "Update group picture (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /groups/{sessionId}/{jid}/picture instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "multipart/form-data": {
-                                    schema: {
-                                        type: "object",
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            file: { type: "string", format: "binary" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Picture updated" } }
-                    },
-                    delete: {
-                        tags: ["Groups"],
-                        summary: "Remove group picture (DEPRECATED)",
-                        description: "**DEPRECATED:** Use DELETE /groups/{sessionId}/{jid}/picture instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } },
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: { 200: { description: "Picture removed" } }
-                    }
-                },
                 "/groups/{sessionId}/{jid}/settings": {
                     put: {
                         tags: ["Groups"],
@@ -4795,37 +3399,6 @@ All endpoints require authentication via:
                                         type: "object",
                                         required: ["setting"],
                                         properties: {
-                                            setting: {
-                                                type: "string",
-                                                enum: ["announcement", "not_announcement", "locked", "unlocked"],
-                                                description: "announcement (admins only send), not_announcement (all send), locked (admins only edit), unlocked (all edit)"
-                                            },
-                                            value: { type: "boolean", description: "Ignored but required" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Settings updated" } }
-                    }
-                },
-                "/groups/{jid}/settings": {
-                    put: {
-                        tags: ["Groups"],
-                        summary: "Update group settings (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /groups/{sessionId}/{jid}/settings instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "setting", "value"],
-                                        properties: {
-                                            sessionId: { type: "string" },
                                             setting: {
                                                 type: "string",
                                                 enum: ["announcement", "not_announcement", "locked", "unlocked"],
@@ -4869,32 +3442,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/groups/{jid}/description": {
-                    put: {
-                        tags: ["Groups"],
-                        summary: "Update group description (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /groups/{sessionId}/{jid}/description instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            description: { type: "string" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Group description updated" } }
-                    }
-                },
                 "/groups/{sessionId}/{jid}/ephemeral": {
                     put: {
                         tags: ["Groups"],
@@ -4923,32 +3470,6 @@ All endpoints require authentication via:
                             400: { description: "Invalid expiration" },
                             500: { description: "Failed to toggle" }
                         }
-                    }
-                },
-                "/groups/{jid}/ephemeral": {
-                    put: {
-                        tags: ["Groups"],
-                        summary: "Toggle disappearing messages (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /groups/{sessionId}/{jid}/ephemeral instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "jid", in: "path", required: true, schema: { type: "string" } }
-                        ],
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "expiration"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            expiration: { type: "integer", enum: [0, 86400, 604800, 7776000], description: "0 (off), 86400 (24h), 604800 (7d), 7776000 (90d)" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Ephemeral settings updated" } }
                     }
                 },
                 // ==================== LABELS ====================
@@ -5106,42 +3627,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/labels": {
-                    get: {
-                        tags: ["Labels"],
-                        summary: "List all labels (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /labels/{sessionId} instead.",
-                        deprecated: true,
-                        parameters: [
-                            { name: "sessionId", in: "query", required: true, schema: { type: "string" } }
-                        ],
-                        responses: {
-                            200: { description: "List of labels" }
-                        }
-                    },
-                    post: {
-                        tags: ["Labels"],
-                        summary: "Create label (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /labels/{sessionId} instead.",
-                        deprecated: true,
-                        requestBody: {
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        required: ["sessionId", "name"],
-                                        properties: {
-                                            sessionId: { type: "string" },
-                                            name: { type: "string" },
-                                            color: { type: "integer" }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        responses: { 200: { description: "Label created" } }
-                    }
-                },
                 "/labels/{sessionId}/{labelId}": {
                     "delete": {
                         "tags": [
@@ -5215,25 +3700,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/labels/{id}": {
-                    put: {
-                        tags: ["Labels"],
-                        summary: "Update label (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /labels/{sessionId}/{labelId} instead.",
-                        deprecated: true,
-                        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-                        requestBody: { content: { "application/json": { schema: { type: "object", properties: { name: { type: "string" }, color: { type: "integer" } } } } } },
-                        responses: { 200: { description: "Label updated" } }
-                    },
-                    delete: {
-                        tags: ["Labels"],
-                        summary: "Delete label (DEPRECATED)",
-                        description: "**DEPRECATED:** Use DELETE /labels/{sessionId}/{labelId} instead.",
-                        deprecated: true,
-                        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-                        responses: { 200: { description: "Label deleted" } }
-                    }
-                },
                 "/labels/{sessionId}/chat/{jid}/labels": {
                     get: {
                         tags: ["Labels"],
@@ -5276,25 +3742,6 @@ All endpoints require authentication via:
                                 content: { "application/json": { schema: { type: "object", properties: { success: { type: "boolean" }, message: { type: "string" }, labels: { type: "array", items: { $ref: "#/components/schemas/Label" } } } } } }
                             }
                         }
-                    }
-                },
-                "/labels/chat-labels": {
-                    get: {
-                        tags: ["Labels"],
-                        summary: "Get chat labels (DEPRECATED)",
-                        description: "**DEPRECATED:** Use GET /labels/{sessionId}/chat/{jid}/labels instead.",
-                        deprecated: true,
-                        parameters: [{ name: "jid", in: "query", required: true, schema: { type: "string" } }, { name: "sessionId", in: "query", required: true, schema: { type: "string" } }],
-                        responses: { 200: { description: "Chat labels" } }
-                    },
-                    put: {
-                        tags: ["Labels"],
-                        summary: "Add or remove labels from chat (DEPRECATED)",
-                        description: "**DEPRECATED:** Use PUT /labels/{sessionId}/chat/{jid}/labels instead.",
-                        deprecated: true,
-                        parameters: [{ name: "jid", in: "query", required: true, schema: { type: "string" } }],
-                        requestBody: { content: { "application/json": { schema: { type: "object", required: ["sessionId", "action", "labelIds"], properties: { sessionId: { type: "string" }, labelIds: { type: "array", items: { type: "string" } }, action: { type: "string", enum: ["add", "remove"] } } } } } },
-                        responses: { 200: { description: "Chat labels updated" } }
                     }
                 },
 
@@ -5683,16 +4130,6 @@ All endpoints require authentication via:
                         }
                     }
                 },
-                "/contacts/block": {
-                    post: {
-                        tags: ["Contacts"],
-                        summary: "Block contact (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /contacts/{sessionId}/{jid}/block instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: { content: { "application/json": { schema: { type: "object", required: ["sessionId", "jid"], properties: { sessionId: { type: "string" }, jid: { type: "string" } } } } } },
-                        responses: { 200: { description: "Contact blocked" } }
-                    }
-                },
                 "/contacts/{sessionId}/{jid}/unblock": {
                     post: {
                         tags: ["Contacts"],
@@ -5707,16 +4144,6 @@ All endpoints require authentication via:
                             403: { $ref: "#/components/responses/Forbidden" },
                             500: { description: "Failed to unblock contact" }
                         }
-                    }
-                },
-                "/contacts/unblock": {
-                    post: {
-                        tags: ["Contacts"],
-                        summary: "Unblock contact (DEPRECATED)",
-                        description: "**DEPRECATED:** Use POST /contacts/{sessionId}/{jid}/unblock instead. This endpoint will be removed in a future version.",
-                        deprecated: true,
-                        requestBody: { content: { "application/json": { schema: { type: "object", required: ["sessionId", "jid"], properties: { sessionId: { type: "string" }, jid: { type: "string" } } } } } },
-                        responses: { 200: { description: "Contact unblocked" } }
                     }
                 },
                 "/chats/{sessionId}/by-label/{labelId}": {

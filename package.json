@@ -1,6 +1,6 @@
 {
   "name": "wa-akg",
-  "version": "1.5.4",
+  "version": "1.6.0-beta.1",
   "private": false,
   "scripts": {
     "dev": "npx tsx src/server/index.ts",
@@ -78,6 +78,7 @@
     "postinstall-postinstall": "^2.1.0",
     "swagger-ui-react": "^5.31.0",
     "tailwindcss": "^4",
+    "ts-morph": "^28.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
