@@ -11,11 +11,18 @@ RUN npx prisma generate
 FROM node:20-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache openssl
-COPY --from=deps /app/node_modules ./node_modules
+
+# 1. Copy all source files first
 COPY . .
+
+# 2. Overwrite with the clean Linux dependencies from Stage 1
+COPY --from=deps /app/node_modules ./node_modules
+
+# 3. Wipe any accidentally copied local Next.js cache
+RUN rm -rf .next
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
-# The invalid --no-turbo flag has been removed here
 RUN npm run build
 
 # Stage 3: Production
