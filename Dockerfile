@@ -1,33 +1,32 @@
-FROM node:20-alpine AS builder
+# Stage 1: Install dependencies
+FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package*.json ./
-COPY patches ./patches/
-COPY prisma ./prisma/
+COPY web/package*.json ./
 RUN npm ci
 
-# Copy the rest of the application files
-COPY . .
-
-# Generate Prisma client and build Next.js application
-RUN npx prisma generate
+# Stage 2: Build the Next.js app
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY web/ .
+COPY --from=deps /app/node_modules ./node_modules
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Production image
+# Stage 3: Production image
 FROM node:20-alpine AS runner
 WORKDIR /app
-
-# Copy production files
-COPY package*.json ./
-COPY node_modules ./node_modules
-COPY .next ./.next
-COPY src ./src
-COPY prisma ./prisma
-COPY public ./public
-COPY tsconfig.json ./
-
 ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-EXPOSE 3000
+ENV NEXT_TELEMETRY_DISABLED=1
 
-CMD ["sh", "-c", "npx prisma db push && (if [ -n \"$ADMIN_EMAIL\" ] && [ -n \"$ADMIN_PASSWORD\" ]; then node scripts/setup-admin.js \"$ADMIN_EMAIL\" \"$ADMIN_PASSWORD\"; fi) && npx tsx src/server/index.ts"]
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+
+CMD ["node", "server.js"]
