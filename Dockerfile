@@ -15,7 +15,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
-RUN npm run build -- --no-turbo
+# The invalid --no-turbo flag has been removed here
+RUN npm run build
 
 # Stage 3: Production
 FROM node:20-alpine AS runner
