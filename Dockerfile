@@ -1,6 +1,7 @@
 # Stage 1: Install dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY package*.json ./
 COPY prisma ./prisma
 RUN npm ci
@@ -9,15 +10,17 @@ RUN npx prisma generate
 # Stage 2: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
-RUN npm run build
+RUN npm run build -- --no-turbo
 
 # Stage 3: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
